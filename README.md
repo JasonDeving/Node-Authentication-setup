@@ -1,6 +1,6 @@
 # Complete Guide to Node Authentication
 
-Code for the entire scotch.io tutorial series: Complete Guide to Node Authentication
+Complete Guide to Node Authentication with mongodb
 
 We will be using Passport to authenticate users locally, with Facebook, Twitter, and Google.
 
