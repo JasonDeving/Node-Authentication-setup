@@ -40,6 +40,13 @@ module.exports = function(passport) {
         passReqToCallback : true // allows us to pass back the entire request to the callback
     },
     function(req, email, password, done) {
+        if (!email || !password) {
+            return done(null, false, req.flash('signupMessage', 'Email and password are required.'));
+        }
+
+        if (password.length < 8) {
+            return done(null, false, req.flash('signupMessage', 'Password must be at least 8 characters.'));
+        }
 
 		// find a user whose email is the same as the forms email
 		// we are checking to see if the user trying to login already exists
@@ -86,6 +93,9 @@ module.exports = function(passport) {
         passReqToCallback : true // allows us to pass back the entire request to the callback
     },
     function(req, email, password, done) { // callback with email and password from our form
+        if (!email || !password) {
+            return done(null, false, req.flash('loginMessage', 'Email and password are required.'));
+        }
 
         // find a user whose email is the same as the forms email
         // we are checking to see if the user trying to login already exists
