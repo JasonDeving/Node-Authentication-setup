@@ -19,11 +19,38 @@ module.exports = function(app, passport) {
 	});
 
 	// process the login form
-	app.post('/login', passport.authenticate('local-login', {
-		successRedirect : '/profile', // redirect to the secure profile section
-		failureRedirect : '/login', // redirect back to the signup page if there is an error
-		failureFlash : true // allow flash messages
-	}));
+	app.post('/login', function(req, res, next) {
+		passport.authenticate('local-login', function(err, user, info) {
+			if (err) {
+				return next(err);
+			}
+
+			if (!user) {
+				req.flash('loginMessage', (info && info.message) || 'Login failed.');
+				return res.redirect('/login');
+			}
+
+			var redirectToProfile = function() {
+				req.logIn(user, function(loginErr) {
+					if (loginErr) {
+						return next(loginErr);
+					}
+					return res.redirect('/profile');
+				});
+			};
+
+			if (req.session && typeof req.session.regenerate === 'function') {
+				return req.session.regenerate(function(sessionErr) {
+					if (sessionErr) {
+						return next(sessionErr);
+					}
+					return redirectToProfile();
+				});
+			}
+
+			return redirectToProfile();
+		})(req, res, next);
+	});
 
 	// =====================================
 	// SIGNUP ==============================
@@ -36,11 +63,38 @@ module.exports = function(app, passport) {
 	});
 
 	// process the signup form
-	app.post('/signup', passport.authenticate('local-signup', {
-		successRedirect : '/profile', // redirect to the secure profile section
-		failureRedirect : '/signup', // redirect back to the signup page if there is an error
-		failureFlash : true // allow flash messages
-	}));
+	app.post('/signup', function(req, res, next) {
+		passport.authenticate('local-signup', function(err, user, info) {
+			if (err) {
+				return next(err);
+			}
+
+			if (!user) {
+				req.flash('signupMessage', (info && info.message) || 'Signup failed.');
+				return res.redirect('/signup');
+			}
+
+			var redirectToProfile = function() {
+				req.logIn(user, function(loginErr) {
+					if (loginErr) {
+						return next(loginErr);
+					}
+					return res.redirect('/profile');
+				});
+			};
+
+			if (req.session && typeof req.session.regenerate === 'function') {
+				return req.session.regenerate(function(sessionErr) {
+					if (sessionErr) {
+						return next(sessionErr);
+					}
+					return redirectToProfile();
+				});
+			}
+
+			return redirectToProfile();
+		})(req, res, next);
+	});
 
 	// =====================================
 	// PROFILE SECTION =========================
@@ -58,6 +112,13 @@ module.exports = function(app, passport) {
 	// =====================================
 	app.get('/logout', function(req, res) {
 		req.logout();
+		if (req.session) {
+			return req.session.destroy(function() {
+				res.clearCookie('sid');
+				res.redirect('/');
+			});
+		}
+		res.clearCookie('sid');
 		res.redirect('/');
 	});
 };
